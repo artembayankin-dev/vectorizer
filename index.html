@@ -50,6 +50,10 @@ header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; ju
 h1 { font-family: var(--font-display); font-weight: 600; font-size: 20px; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
 h1 small { font-family: var(--font-mono); font-weight: 400; font-size: 12px; color: var(--muted); margin-left: 8px; letter-spacing: 0; }
 .head-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn.icon { display: inline-flex; align-items: center; justify-content: center; padding: 0 10px; min-width: 38px; }
+.btn.icon .sun { display: none; }
+:root[data-theme="dark"] .btn.icon .sun { display: block; }
+:root[data-theme="dark"] .btn.icon .moon { display: none; }
 .btn.lang { display: inline-flex; gap: 2px; padding: 3px; }
 .btn.lang span { padding: 4px 8px; border-radius: 5px; font: 600 12px var(--font-mono); color: var(--muted); }
 .btn.lang span.on { background: var(--accent); color: var(--accent-ink); }
@@ -183,6 +187,10 @@ textarea { width: 100%; min-height: 140px; margin-top: 8px; font: 12px/1.4 var(-
   <header>
     <h1>Векторизатор изображений <small>растр → SVG</small></h1>
     <div class="head-actions">
+      <button class="btn icon" id="themeBtn" type="button" aria-label="Тёмная тема" title="Тёмная тема">
+        <svg class="moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M15.5 12.6A6.5 6.5 0 0 1 7.4 4.5a6.5 6.5 0 1 0 8.1 8.1z" fill="currentColor"/></svg>
+        <svg class="sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="currentColor"/><g stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M10 1.8v2M10 16.2v2M1.8 10h2M16.2 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4"/></g></svg>
+      </button>
       <button class="btn lang" id="langBtn" type="button" aria-label="Язык / Language"><span data-l="en">EN</span><span data-l="ru">RU</span></button>
       <button class="btn" id="copyBtn" type="button">Копировать SVG</button>
       <button class="btn primary" id="saveBtn" type="button" hidden>Скачать SVG</button>
@@ -2156,6 +2164,8 @@ textarea { width: 100%; min-height: 140px; margin-top: 8px; font: 12px/1.4 var(-
     'Колёсико — масштаб к курсору, перетаскивание — сдвиг, линию сравнения можно тянуть мышью, двойной щелчок — вписать.': 'Wheel — zoom to the cursor, drag — pan, the comparison line can be dragged, double-click — fit.',
     'SVG-код': 'SVG code',
     'Язык / Language': 'Language / Язык',
+    'Тёмная тема': 'Dark theme',
+    'Светлая тема': 'Light theme',
     // messages
     'Прозрачности нет: однотонный фон убран.': 'No transparency: the solid background was removed.',
     'Прозрачности нет: фон станет частью рисунка.': 'No transparency: the background becomes part of the drawing.',
@@ -2198,7 +2208,24 @@ textarea { width: 100%; min-height: 140px; margin-top: 8px; font: 12px/1.4 var(-
     syncLabels();
     if (result) render(); else renderPalette();
     if (lastStatus) setStatus(lastStatus.text, lastStatus.cls);
+    if (typeof applyTheme === 'function') applyTheme();
   }
+  // ---------- theme: light by default, dark on the switch ----------
+  let theme = 'light';
+  try { if (localStorage.getItem('vz-theme') === 'dark') theme = 'dark'; } catch (e) {}
+  function applyTheme() {
+    document.documentElement.dataset.theme = theme;
+    const t = tr(theme === 'dark' ? 'Светлая тема' : 'Тёмная тема');
+    $('themeBtn').title = t; $('themeBtn').setAttribute('aria-label', t);
+    $('themeBtn').setAttribute('aria-pressed', String(theme === 'dark'));
+  }
+  $('themeBtn').addEventListener('click', () => {
+    theme = theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('vz-theme', theme); } catch (e) {}
+    applyTheme();
+  });
+  applyTheme();
+
   $('langBtn').addEventListener('click', () => {
     lang = lang === 'en' ? 'ru' : 'en';
     try { localStorage.setItem('vz-lang', lang); } catch (e) {}
